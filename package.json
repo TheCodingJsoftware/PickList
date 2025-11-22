@@ -1,0 +1,40 @@
+{
+  "name": "picklist",
+  "version": "1.0.0",
+  "description": "PickList is a family-based ordering system that gives each household a fair share of points based on family size. Families use their points to pick food, supplies, and other items during bulk purchases, ensuring a simple, transparent, and fair distribution for everyone.",
+  "homepage": "https://github.com/TheCodingJsoftware/Picklist#readme",
+  "bugs": {
+    "url": "https://github.com/TheCodingJsoftware/Picklist/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TheCodingJsoftware/Picklist.git"
+  },
+  "license": "GPL-3.0-only",
+  "author": "Jared Gross",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "webpack serve --config src/config/webpack.dev.js",
+    "build": "webpack --config src/config/webpack.prod.js",
+    "deploy": "npm run build && firebase deploy --only hosting"
+  },
+  "devDependencies": {
+    "compression-webpack-plugin": "^11.1.0",
+    "copy-webpack-plugin": "^13.0.1",
+    "css-loader": "^7.1.2",
+    "esbuild": "^0.27.0",
+    "esbuild-loader": "^4.4.0",
+    "fork-ts-checker-webpack-plugin": "^9.1.0",
+    "glob-all": "^3.3.1",
+    "html-webpack-plugin": "^5.6.5",
+    "mini-css-extract-plugin": "^2.9.4",
+    "purgecss-webpack-plugin": "^7.0.2",
+    "webpack": "^5.103.0",
+    "webpack-cli": "^6.0.1",
+    "webpack-dev-server": "^5.2.2",
+    "workbox-webpack-plugin": "^7.3.0"
+  },
+  "dependencies": {
+    "beercss": "^3.12.13"
+  }
+}
