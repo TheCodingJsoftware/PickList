@@ -1,0 +1,26 @@
+import os
+
+from dotenv import load_dotenv
+
+load_dotenv()
+
+
+class Environment:
+    def __init__(self):
+        raise RuntimeError("Environment is a static class and cannot be instantiated.")
+
+    POSTGRES_USER = os.getenv("POSTGRES_USER")
+    POSTGRES_PASSWORD = os.getenv("POSTGRES_PASSWORD")
+    POSTGRES_DB = os.getenv("POSTGRES_DB")
+    POSTGRES_WORKSPACE_DB = os.getenv("POSTGRES_WORKSPACE_DB")
+    POSTGRES_HOST = os.getenv("POSTGRES_HOST")
+    POSTGRES_PORT = int(os.getenv("POSTGRES_PORT", 5434))
+    POSTGRES_MIN_POOL_SIZE = int(os.getenv("POSTGRES_MIN_POOL_SIZE", 5))
+    POSTGRES_MAX_POOL_SIZE = int(os.getenv("POSTGRES_MAX_POOL_SIZE", 10))
+    POSTGRES_TIMEOUT = int(os.getenv("POSTGRES_TIMEOUT", 5))
+    POSTGRES_COMMAND_TIMEOUT = int(os.getenv("POSTGRES_COMMAND_TIMEOUT", 30))
+    POSTGRES_MAX_INACTIVE_CONNECTION_LIFETIME = int(os.getenv("POSTGRES_MAX_INACTIVE_CONNECTION_LIFETIME", 60))
+    PORT = int(os.getenv("PORT", 5061))
+    DEBUG = os.getenv("DEBUG", "false").lower() == "true"
+    DATA_PATH = os.getenv("DATA_PATH", "")
+    COOKIE_SECRET = os.getenv("COOKIE_SECRET", "secret")
