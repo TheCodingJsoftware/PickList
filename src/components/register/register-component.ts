@@ -1,4 +1,7 @@
+import "@components/common/button/register-button";
+import { RegisterButton } from "@components/common/button/register-button";
 import { SnackbarComponent } from "@components/common/snackbar/snackbar";
+import { DEFAULT_COLOR } from "@utils/colors";
 
 export class RegisterComponent extends HTMLElement {
     private selectedColor: string | null = null;
@@ -60,7 +63,7 @@ export class RegisterComponent extends HTMLElement {
                 </fieldset>
 
                 <nav class="s12 right-align">
-                    <button id="registerButton">
+                    <button is="register-button" id="registerButton">
                         <i>login</i>
                         <span>Register</span>
                     </button>
@@ -118,6 +121,9 @@ export class RegisterComponent extends HTMLElement {
                 const color = (ev.currentTarget as HTMLElement).dataset.color!;
                 this.selectedColor = color;
 
+                ui("theme", color);
+                localStorage.setItem("theme", color);
+
                 // highlight selected
                 this.querySelectorAll("[data-color]").forEach(b => b.classList.remove("selected"));
                 (ev.currentTarget as HTMLElement).classList.add("selected");
@@ -128,6 +134,9 @@ export class RegisterComponent extends HTMLElement {
         this.querySelector("#select-color")?.addEventListener("input", (ev) => {
             const color = (ev.target as HTMLInputElement).value;
             this.selectedColor = color;
+
+            ui("theme", color);
+            localStorage.setItem("theme", color);
 
             // remove highlight from preset buttons
             this.querySelectorAll("[data-color]").forEach(b => b.classList.remove("selected"));
@@ -156,18 +165,19 @@ export class RegisterComponent extends HTMLElement {
     }
 
     async register() {
+        const registerButton = this.querySelector("#registerButton") as RegisterButton;
         const username = (this.querySelector("#username") as HTMLInputElement).value;
         const password = (this.querySelector("#password") as HTMLInputElement).value;
         const colony = (this.querySelector("#colony") as HTMLInputElement).value;
 
         if (!username || !password || !colony) {
             SnackbarComponent.error("Please fill in all required fields.");
+            registerButton.failure();
             return;
         }
 
         if (!this.selectedColor) {
-            SnackbarComponent.error("Please select a colony theme color.");
-            return;
+            this.selectedColor = DEFAULT_COLOR;
         }
 
         const formData = new FormData();
@@ -180,6 +190,8 @@ export class RegisterComponent extends HTMLElement {
             formData.append("banner", this.selectedBannerFile);
         }
 
+        registerButton.start();
+
         try {
             const response = await fetch("/api/register", {
                 method: "POST",
@@ -191,6 +203,7 @@ export class RegisterComponent extends HTMLElement {
             if (result.error) throw new Error(result.error);
 
             SnackbarComponent.success("Registration successful!");
+            registerButton.success();
 
             this.dispatchEvent(new CustomEvent("register-response", {
                 detail: result,
@@ -200,6 +213,8 @@ export class RegisterComponent extends HTMLElement {
 
         } catch (err) {
             console.error("Register error:", err);
+            SnackbarComponent.error("Registration failed. Please try again.");
+            registerButton.failure();
         }
     }
 }

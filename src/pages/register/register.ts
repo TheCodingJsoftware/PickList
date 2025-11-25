@@ -1,3 +1,5 @@
 import "beercss"
+import "material-dynamic-colors"
+import "@utils/theme"
 import "@static/css/global.css"
 import "@components/register/register-component"

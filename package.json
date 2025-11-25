@@ -35,6 +35,7 @@
     "workbox-webpack-plugin": "^7.3.0"
   },
   "dependencies": {
-    "beercss": "^3.12.13"
+    "beercss": "^3.12.13",
+    "material-dynamic-colors": "^1.1.2"
   }
 }
