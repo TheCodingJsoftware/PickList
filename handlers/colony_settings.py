@@ -4,10 +4,12 @@ import os
 import bcrypt
 
 from handlers.base import BaseHandler
+from handlers.require_role import require_role
 from utils.database import get_master_pool
 
 
 class ColonySettingsPageHandler(BaseHandler):
+    @require_role("admin")
     async def get(self, *args, **kwargs):
         # Normalize colony identifier from URL
         colony_identifier = self.request.path.strip("/").lower().replace("/settings", "").replace("/items", "")
@@ -43,6 +45,7 @@ class ColonySettingsPageHandler(BaseHandler):
 
 
 class ColonySettingsAPIHandler(BaseHandler):
+    @require_role("admin")
     async def post(self, colony_name):
         original_path = self.request.path
         logging.info(f"[SETTINGS_API] Incoming update request: path='{original_path}'")
