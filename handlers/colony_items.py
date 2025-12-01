@@ -48,16 +48,9 @@ class ColonyItemsPageHandler(BaseHandler):
     @require_role("admin")
     async def post(self, *args, **kwargs):
         try:
-            # ====================================================
-            # Identify the colony from the request path
-            # /api/colony/{colony}/items
-            # ====================================================
             colony_identifier = self.request.path.strip("/").split("/")[2].lower()
             logging.info(f"[ADD ITEM] Colony: {colony_identifier}")
 
-            # ====================================================
-            # Fetch colony record to get database_name
-            # ====================================================
             master_pool = await get_master_pool()
             async with master_pool.acquire() as conn:
                 colony = await conn.fetchrow(
@@ -74,64 +67,58 @@ class ColonyItemsPageHandler(BaseHandler):
                 return self.finish({"error": "Colony not found"})
 
             colony_db = colony["database_name"]
-
-            # ====================================================
-            # COLONY DB connection
-            # ====================================================
             colony_dsn = f"postgres://{Environment.POSTGRES_USER}:{Environment.POSTGRES_PASSWORD}@{Environment.POSTGRES_HOST}:{Environment.POSTGRES_PORT}/{colony_db}"
             colony_conn = await asyncpg.connect(colony_dsn)
 
-            # ====================================================
-            # FORM FIELDS
-            # ====================================================
+            # -------------------------
+            # BODY ARGUMENTS
+            # -------------------------
             name = self.get_body_argument("name")
             description = self.get_body_argument("description", None)
             points_per_item = int(self.get_body_argument("points_per_item", "1"))
+
             website_url = self.get_body_argument("website_url", None)
             category = self.get_body_argument("category", None)
             tags_raw = self.get_body_argument("tags", "")
+            tags = [t.strip() for t in tags_raw.split(",") if t.strip()] or None
 
             is_active = self.get_body_argument("is_active", "true") == "true"
             max_allowed_raw = self.get_body_argument("max_allowed", "")
+            max_allowed = int(max_allowed_raw) if max_allowed_raw else None
             default_quantity = int(self.get_body_argument("default_quantity", "1"))
 
-            tags = [t.strip() for t in tags_raw.split(",") if t.strip()] or None
-            max_allowed = int(max_allowed_raw) if max_allowed_raw else None
+            # NEW FIELDS
+            item_number = self.get_body_argument("item_number", None)
+            model_number = self.get_body_argument("model_number", None)
 
-            # ====================================================
-            # Thumbnail upload
-            # ====================================================
+            # -------------------------
+            # Thumbnail Upload
+            # -------------------------
             thumb_meta = self.request.files.get("thumbnail")
             thumbnail_filename = None
 
             if thumb_meta:
                 fileinfo = thumb_meta[0]
-                original_name = fileinfo["filename"]
-                ext = os.path.splitext(original_name)[1]
-
+                ext = os.path.splitext(fileinfo["filename"])[1]
                 thumbnail_filename = f"{uuid.uuid4().hex}{ext}"
 
                 save_dir = f"{Environment.DATA_PATH}/uploaded_thumbnails/"
                 os.makedirs(save_dir, exist_ok=True)
 
-                save_path = os.path.join(save_dir, thumbnail_filename)
-
-                with open(save_path, "wb") as f:
+                with open(os.path.join(save_dir, thumbnail_filename), "wb") as f:
                     f.write(fileinfo["body"])
 
-                logging.info(f"Thumbnail saved: {thumbnail_filename}")
-
-            # ====================================================
-            # Insert Item
-            # ====================================================
+            # -------------------------
+            # INSERT SQL
+            # -------------------------
             sql = """
                 INSERT INTO colony_items (
                     name, description, points_per_item,
-                    thumbnail_path,
-                    website_url, category, tags,
-                    is_active, max_allowed, default_quantity
+                    thumbnail_path, website_url, category, tags,
+                    is_active, max_allowed, default_quantity,
+                    item_number, model_number
                 )
-                VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
+                VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)
                 RETURNING id
             """
 
@@ -143,20 +130,22 @@ class ColonyItemsPageHandler(BaseHandler):
                 thumbnail_filename,
                 website_url,
                 category,
-                tags,  # TEXT[]
+                tags,
                 is_active,
                 max_allowed,
                 default_quantity,
+                item_number,
+                model_number,
             )
 
             await colony_conn.close()
-
             return self.finish({"success": True, "item_id": new_id})
 
         except Exception as e:
             logging.exception("Error in ColonyItemsPostHandler:")
             self.set_status(400)
             return self.finish({"error": str(e)})
+
 
 
 class ColonyItemsAPIUpdateHandler(BaseHandler):
@@ -166,18 +155,11 @@ class ColonyItemsAPIUpdateHandler(BaseHandler):
             colony_identifier = colony_name.lower()
             logging.info(f"[UPDATE ITEM] Colony: {colony_identifier}")
 
-            # --------------------------------------------------
-            # Fetch colony DB name
-            # --------------------------------------------------
             master_pool = await get_master_pool()
             async with master_pool.acquire() as conn:
                 colony = await conn.fetchrow(
-                    """
-                    SELECT database_name
-                    FROM colonies
-                    WHERE colony_name = $1
-                    """,
-                    colony_identifier,
+                    "SELECT database_name FROM colonies WHERE colony_name = $1",
+                    colony_identifier
                 )
 
             if not colony:
@@ -185,14 +167,18 @@ class ColonyItemsAPIUpdateHandler(BaseHandler):
                 return self.finish({"error": "Colony not found"})
 
             colony_db = colony["database_name"]
-
-            colony_dsn = f"postgres://{Environment.POSTGRES_USER}:{Environment.POSTGRES_PASSWORD}@{Environment.POSTGRES_HOST}:{Environment.POSTGRES_PORT}/{colony_db}"
+            colony_dsn = (
+                f"postgres://{Environment.POSTGRES_USER}:"
+                f"{Environment.POSTGRES_PASSWORD}@"
+                f"{Environment.POSTGRES_HOST}:"
+                f"{Environment.POSTGRES_PORT}/{colony_db}"
+            )
 
             colony_conn = await asyncpg.connect(colony_dsn)
 
-            # --------------------------------------------------
+            # -------------------
             # FORM FIELDS
-            # --------------------------------------------------
+            # -------------------
             item_id = int(self.get_body_argument("id"))
 
             name = self.get_body_argument("name")
@@ -202,40 +188,37 @@ class ColonyItemsAPIUpdateHandler(BaseHandler):
             website_url = self.get_body_argument("website_url", None)
             category = self.get_body_argument("category", None)
             tags_raw = self.get_body_argument("tags", "")
+            tags = [t.strip() for t in tags_raw.split(",") if t.strip()]
 
             is_active = self.get_body_argument("is_active", "true") == "true"
             max_allowed_raw = self.get_body_argument("max_allowed", None)
+            max_allowed = int(max_allowed_raw) if max_allowed_raw not in ("", None) else None
             default_quantity = int(self.get_body_argument("default_quantity", "1"))
 
-            tags = [t.strip() for t in tags_raw.split(",") if t.strip()]
-            max_allowed = int(max_allowed_raw) if max_allowed_raw not in (None, "", "null") else None
+            # NEW FIELDS
+            item_number = self.get_body_argument("item_number", None)
+            model_number = self.get_body_argument("model_number", None)
 
-            # --------------------------------------------------
-            # OPTIONAL THUMBNAIL UPLOAD
-            # --------------------------------------------------
+            # -------------------
+            # THUMBNAIL UPLOAD
+            # -------------------
             thumb_meta = self.request.files.get("thumbnail")
             thumbnail_filename = None
 
             if thumb_meta:
                 fileinfo = thumb_meta[0]
-                original_name = fileinfo["filename"]
-                ext = os.path.splitext(original_name)[1]
-
+                ext = os.path.splitext(fileinfo["filename"])[1]
                 thumbnail_filename = f"{uuid.uuid4().hex}{ext}"
 
                 save_dir = f"{Environment.DATA_PATH}/uploaded_thumbnails/"
                 os.makedirs(save_dir, exist_ok=True)
 
-                save_path = os.path.join(save_dir, thumbnail_filename)
-
-                with open(save_path, "wb") as f:
+                with open(os.path.join(save_dir, thumbnail_filename), "wb") as f:
                     f.write(fileinfo["body"])
 
-                logging.info(f"[UPDATE ITEM] New thumbnail saved: {thumbnail_filename}")
-
-            # --------------------------------------------------
+            # -------------------
             # UPDATE SQL
-            # --------------------------------------------------
+            # -------------------
             sql = """
                 UPDATE colony_items
                 SET
@@ -248,9 +231,11 @@ class ColonyItemsAPIUpdateHandler(BaseHandler):
                     is_active = $7,
                     max_allowed = $8,
                     default_quantity = $9,
+                    item_number = $10,
+                    model_number = $11,
                     updated_at = NOW(),
-                    thumbnail_path = COALESCE($10, thumbnail_path)
-                WHERE id = $11
+                    thumbnail_path = COALESCE($12, thumbnail_path)
+                WHERE id = $13
             """
 
             await colony_conn.execute(
@@ -264,12 +249,13 @@ class ColonyItemsAPIUpdateHandler(BaseHandler):
                 is_active,
                 max_allowed,
                 default_quantity,
-                thumbnail_filename,  # only overwrites if provided
+                item_number,
+                model_number,
+                thumbnail_filename,
                 item_id,
             )
 
             await colony_conn.close()
-
             return self.finish({"success": True})
 
         except Exception as e:
@@ -318,15 +304,15 @@ class ColonyItemsAPIGetHandler(BaseHandler):
             rows = await colony_conn.fetch(
                 """
                 SELECT id, name, description, points_per_item,
-                       thumbnail_path, website_url,
-                       category, tags,
-                       is_active, max_allowed, default_quantity,
-                       created_at, updated_at
+                    thumbnail_path, website_url,
+                    category, tags,
+                    is_active, max_allowed, default_quantity,
+                    item_number, model_number,
+                    created_at, updated_at
                 FROM colony_items
                 ORDER BY name ASC
                 """
             )
-
             await colony_conn.close()
 
             # Convert tags arrays to Python lists
@@ -345,6 +331,8 @@ class ColonyItemsAPIGetHandler(BaseHandler):
                         "is_active": r["is_active"],
                         "max_allowed": r["max_allowed"],
                         "default_quantity": r["default_quantity"],
+                        "item_number": r["item_number"],
+                        "model_number": r["model_number"],
                         "created_at": r["created_at"].isoformat(),
                         "updated_at": r["updated_at"].isoformat(),
                     }

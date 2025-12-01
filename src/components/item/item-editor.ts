@@ -16,7 +16,7 @@ export class ItemEditor extends HTMLElement {
 
             <!-- POINTS -->
             <div class="s12 m6 l4 round field label border bottom-margin">
-                <input type="number" id="points_per_item" min="1">
+                <input type="number" id="points_per_item" min="1" value="1">
                 <label>Points Per Item</label>
             </div>
 
@@ -24,6 +24,18 @@ export class ItemEditor extends HTMLElement {
             <div class="s12 field textarea label border bottom-margin">
                 <textarea id="description" rows="3"></textarea>
                 <label>Description</label>
+            </div>
+
+            <!-- ITEM NUMBER -->
+            <div class="s12 m6 l6 round field label border bottom-margin">
+                <input type="text" id="item_number">
+                <label>Item Number</label>
+            </div>
+
+            <!-- MODEL NUMBER -->
+            <div class="s12 m6 l5 round field label border bottom-margin">
+                <input type="text" id="model_number">
+                <label>Model Number</label>
             </div>
 
             <!-- THUMBNAIL UPLOAD -->
@@ -119,6 +131,9 @@ export class ItemEditor extends HTMLElement {
         (this.querySelector("#category") as HTMLInputElement).value = data.category ?? "";
         (this.querySelector("#tags") as HTMLInputElement).value = (data.tags ?? []).join(", ");
 
+        (this.querySelector("#item_number") as HTMLInputElement).value = data.item_number ?? "";
+        (this.querySelector("#model_number") as HTMLInputElement).value = data.model_number ?? "";
+
         (this.querySelector("#is_active") as HTMLInputElement).checked = data.is_active ?? true;
 
         (this.querySelector("#max_allowed") as HTMLInputElement).value =
@@ -145,6 +160,9 @@ export class ItemEditor extends HTMLElement {
         form.append("website_url", this.value("#website_url"));
         form.append("category", this.value("#category"));
         form.append("tags", this.value("#tags"));
+
+        form.append("item_number", this.value("#item_number"));
+        form.append("model_number", this.value("#model_number"));
 
         form.append("is_active", (this.querySelector("#is_active") as HTMLInputElement).checked ? "true" : "false");
         form.append("max_allowed", this.value("#max_allowed") || "0");
