@@ -1,7 +1,7 @@
 services:
   app:
-    image: jarebear/picklist:latest
-    container_name: picklist_app
+    image: jarebear/thepantry:latest
+    container_name: thepantry_app
     depends_on:
       - db
     restart: unless-stopped
@@ -10,19 +10,19 @@ services:
       POSTGRES_PASSWORD: Password
       POSTGRES_HOST: db
       POSTGRES_PORT: 5432
-      POSTGRES_DB: picklist
+      POSTGRES_DB: thepantry
       TZ: America/Winnipeg
     ports:
       - "5010:5000"
     volumes:
-      - /mnt/rootshare/PickList:/app/data
+      - /mnt/rootshare/ThePantry:/app/data
 
   db:
     image: postgres:16
-    container_name: picklist_db
+    container_name: thepantry_db
     restart: unless-stopped
     environment:
-      POSTGRES_DB: picklist
+      POSTGRES_DB: thepantry
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: Password
       TZ: America/Winnipeg

@@ -1,7 +1,7 @@
 {
-    "name": "PickList",
-    "short_name": "PickList",
-    "description": "PickList is a family-based ordering system that gives each household a fair share of points based on family size. Families use their points to pick food, supplies, and other items during bulk purchases, ensuring a simple, transparent, and fair distribution for everyone.",
+    "name": "ThePantry",
+    "short_name": "ThePantry",
+    "description": "ThePantry is a family-based ordering system that gives each household a fair share of points based on family size. Families use their points to pick food, supplies, and other items during bulk purchases, ensuring a simple, transparent, and fair distribution for everyone.",
     "theme_color": "#ffb870",
     "background_color": "#ffffff",
     "display_override": [

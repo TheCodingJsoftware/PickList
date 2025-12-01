@@ -2,8 +2,8 @@
 
 set -euo pipefail
 
-IMAGE_NAME="picklist"
-REGISTRY_TAG="jarebear/picklist"
+IMAGE_NAME="thepantry"
+REGISTRY_TAG="jarebear/thepantry"
 
 echo "🔨 Building Docker image: $IMAGE_NAME"
 docker build -t "$IMAGE_NAME" .

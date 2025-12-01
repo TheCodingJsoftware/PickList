@@ -1,14 +1,14 @@
 {
-  "name": "picklist",
+  "name": "thepantry",
   "version": "1.0.0",
-  "description": "PickList is a family-based ordering system that gives each household a fair share of points based on family size. Families use their points to pick food, supplies, and other items during bulk purchases, ensuring a simple, transparent, and fair distribution for everyone.",
-  "homepage": "https://github.com/TheCodingJsoftware/Picklist#readme",
+  "description": "ThePantry is a family-based ordering system that gives each household a fair share of points based on family size. Families use their points to pick food, supplies, and other items during bulk purchases, ensuring a simple, transparent, and fair distribution for everyone.",
+  "homepage": "https://github.com/TheCodingJsoftware/ThePantry#readme",
   "bugs": {
-    "url": "https://github.com/TheCodingJsoftware/Picklist/issues"
+    "url": "https://github.com/TheCodingJsoftware/ThePantry/issues"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/TheCodingJsoftware/Picklist.git"
+    "url": "git+https://github.com/TheCodingJsoftware/ThePantry.git"
   },
   "license": "GPL-3.0-only",
   "author": "Jared Gross",
